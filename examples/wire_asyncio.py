@@ -32,11 +32,27 @@ async def stream_generator(blocksize, pre_fill_blocks=10, **kwargs):
             q_out.put_nowait(outdata)
 
 
-async def main(**kwargs):
+async def wire_coro(**kwargs):
     async for indata, outdata, status in stream_generator(**kwargs):
         if status:
             print(status)
         outdata[:] = indata
+
+
+async def main(**kwargs):
+    print('starting wire ...')
+    # Use asyncio.ensure_future() if you have Python < 3.7
+    audio_task = asyncio.create_task(wire_coro(**kwargs))
+    # You can do whatever you want here, this is just placeholder code:
+    iterations = 10
+    for i in range(iterations, 0, -1):
+        print(i)
+        await asyncio.sleep(1)
+    audio_task.cancel()
+    try:
+        await audio_task
+    except asyncio.CancelledError:
+        print('wire was cancelled')
 
 
 if __name__ == "__main__":
